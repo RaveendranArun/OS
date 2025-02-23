@@ -40,7 +40,7 @@ int main()
 
     for (int i = 0; i < 2; ++i)
         pthread_join(tid[i], NULL);
-
+    printf("\n");
     sema_destroy(sem_odd);
     sema_destroy(sem_eve);
     return 0;
