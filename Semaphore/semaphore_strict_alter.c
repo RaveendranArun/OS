@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "sema.h"
+#include <pthread.h>
 
 sema_t* sem_odd = NULL;
 sema_t* sem_eve = NULL;
