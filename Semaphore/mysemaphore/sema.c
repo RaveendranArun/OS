@@ -28,7 +28,7 @@ int sema_wait(sema_t* sem)
 {
     pthread_mutex_lock(&sem->mutex);
     
-    if (sem->permit_counter == 0)
+    while (sem->permit_counter == 0)
     {
         pthread_cond_wait(&sem->cond, &sem->mutex);
     }
@@ -53,8 +53,11 @@ int sema_post(sema_t* sem)
 
 int sema_destroy(sema_t* sem)
 {
+    if (!sem)
+        return -1;
     sem->permit_counter = 0;
     pthread_mutex_destroy(&sem->mutex);
     pthread_cond_destroy(&sem->cond);
+    return 0;
 }
 
