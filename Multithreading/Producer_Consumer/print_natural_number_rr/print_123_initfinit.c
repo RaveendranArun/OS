@@ -18,7 +18,7 @@ void* thread(void* arg)
     while (1)
     {
         pthread_mutex_lock(&mtx);
-        while (turn != thread_turn && count < MAX_COUNT)
+        while (turn != thread_turn && count <= MAX_COUNT)
         {
             pthread_cond_wait(&cv, &mtx);
         }
@@ -26,7 +26,8 @@ void* thread(void* arg)
         if (count > MAX_COUNT)
         {
             pthread_mutex_unlock(&mtx);
-            return NULL;
+            pthread_cond_broadcast(&cv);
+            break;
         }
 
         printf("thread_%d: %d\n", thread_turn, count++);
