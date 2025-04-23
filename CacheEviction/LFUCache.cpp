@@ -7,11 +7,11 @@ struct Node
 {
     int    key;
     int    value;
-    int    count;
+    int    freq;
     Node*  prev;
     Node*  next;
 
-    Node(int _key, int _value) : key(_key), value(_value), count(1), next(nullptr), prev(nullptr) {}
+    Node(int _key, int _value) : key(_key), value(_value), freq(1), next(nullptr), prev(nullptr) {}
 };
 
 struct List 
@@ -75,27 +75,34 @@ public:
 
 void LFUCache::updateFreqListMap(Node* node)
 {
-    keyNodeMap.erase(node->key);
-    freqListMap[node->count]->removeNode(node);
+    keyNodeMap.erase(node->key);                                      // Remove the node from the keyNodeMap
+    freqListMap[node->freq]->removeNode(node);                        // Remove the node from the respective frequency list
 
-    if (node->count == minFreq && freqListMap[node->count]->size == 0)
+    /* If the node freq is at the min freq, and the list at the current freq has no nodes,
+     * increment the min freq
+     */
+    if (node->freq == minFreq && freqListMap[node->freq]->size == 0)    
     {
         minFreq++;
     }
 
+    node->freq++;                                                      // Increment the node freq 
     List* nextHigherFreqList;
-    if (freqListMap.find(node->count + 1) != freqListMap.end())
+
+    /* If there is already a list exists for the node->freq, 
+     * add the node to that frequency list
+     */
+    if (freqListMap.find(node->freq) != freqListMap.end())
     {
-        nextHigherFreqList = freqListMap[node->count+1];
+        nextHigherFreqList = freqListMap[node->freq];
     }
     else
     {
         nextHigherFreqList = new List();
     }
 
-    node->count++;
     nextHigherFreqList->addNodeFront(node);
-    freqListMap[node->count] = nextHigherFreqList;
+    freqListMap[node->freq] = nextHigherFreqList;
     keyNodeMap[node->key] = node; 
 
 }
