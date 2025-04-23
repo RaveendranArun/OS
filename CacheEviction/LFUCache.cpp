@@ -71,8 +71,6 @@ public:
     void updateFreqListMap(Node* node);
     int get(int key);
     void put(int key, int value);
-
-
 };
 
 void LFUCache::updateFreqListMap(Node* node)
@@ -80,8 +78,28 @@ void LFUCache::updateFreqListMap(Node* node)
     keyNodeMap.erase(node->key);
     freqListMap[node->count]->removeNode(node);
 
+    if (node->count == minFreq && freqListMap[node->count]->size == 0)
+    {
+        minFreq++;
+    }
+
+    List* nextHigherFreqList;
+    if (freqListMap.find(node->count + 1) != freqListMap.end())
+    {
+        nextHigherFreqList = freqListMap[node->count+1];
+    }
+    else
+    {
+        nextHigherFreqList = new List();
+    }
+
+    node->count++;
+    nextHigherFreqList->addNodeFront(node);
+    freqListMap[node->count] = nextHigherFreqList;
+    keyNodeMap[node->key] = node; 
 
 }
+
 void LFUCache::put(int key, int value)
 {
     if (maxCacheSize == 0)                           // The cache is inialized with capacity zero
@@ -140,7 +158,13 @@ int LFUCache::get(int key)
 
 int main()
 {
+    LFUCache* obj = new LFUCache(4);
 
+    obj->put(2, 4);
+    obj->put(1, 10);
+    cout << "Value of key 1 is " << obj->get(1) << endl;
+
+    delete obj;
     return 0;
 }
 
