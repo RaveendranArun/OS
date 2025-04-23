@@ -11,14 +11,14 @@ struct Node
     Node*  prev;
     Node*  next;
 
-    Node(int _key, int _value) : key(x), value(y), count(1), next(nullptr), prev(nullptr) {}
-}Node;
+    Node(int _key, int _value) : key(_key), value(_value), count(1), next(nullptr), prev(nullptr) {}
+};
 
 struct List 
 {
     Node* head;
     Node* tail;
-    int size;
+    int   size;
 
     List() 
     {
@@ -26,17 +26,18 @@ struct List
         tail = new Node(0, 0);
         
         head->next = tail;
-        tail-prev = head;
-        size++;
+        tail->prev = head;
+        size = 0;
     }
 
-    void addFront(Node* node)
+    void addNodeFront(Node* node)
     {
         Node* nextNode = head->next;
         node->next = nextNode;
         node->prev = head;
         head->next = node;
         nextNode->prev = node;
+        size++;
     }
 
     void removeNode(Node* node)
@@ -46,6 +47,7 @@ struct List
 
         prevNode->next = nextNode;
         nextNode->prev = prevNode;
+        size--;
     }
 };
 
@@ -57,6 +59,7 @@ private:
     int maxCacheSize;
     int minFreq;
     int curSize;
+
 public:
     LFUCache(int capacity)
     {
@@ -70,24 +73,56 @@ public:
     void put(int key, int value);
 
 
-}
-void LFUCache::add_node(Node* node)
-{
-   
-}
+};
 
-void LFUCache::remove_node(Node* node)
+void LFUCache::updateFreqListMap(Node* node)
 {
-   
-}
+    keyNodeMap.erase(node->key);
+    freqListMap[node->count]->removeNode(node);
 
-void updateFreqListMap(Node* node)
-{
 
 }
 void LFUCache::put(int key, int value)
 {
+    if (maxCacheSize == 0)                           // The cache is inialized with capacity zero
+    {
+        return;
+    }
 
+    if (keyNodeMap.find(key) != keyNodeMap.end())    // If the key is already present
+    {
+        Node* node = keyNodeMap[key];
+        node->value = value;
+        updateFreqListMap(node);
+    }
+    else
+    {
+        if (curSize == maxCacheSize)                 // Cache is full, eviction based on LRU
+        {
+            List* list = freqListMap[minFreq];
+            keyNodeMap.erase(list->tail->prev->key);
+            freqListMap[minFreq]->removeNode(list->tail->prev);
+            curSize--;
+        }
+
+        curSize++;                                  // Update the new (key, value) pair
+        minFreq = 1;
+        List* listFreq;
+        if (freqListMap.find(minFreq) != freqListMap.end())
+        {
+            listFreq = freqListMap[minFreq];
+        }
+        else
+        {
+            listFreq = new List();
+            freqListMap[minFreq] = listFreq;
+        }
+        
+        Node* node = new Node(key, value);
+        listFreq->addNodeFront(node);
+        keyNodeMap[key] = node;
+    }
+    
 }
 
 int LFUCache::get(int key)
@@ -105,12 +140,6 @@ int LFUCache::get(int key)
 
 int main()
 {
-    LRUCache* cache = new LRUCache(4);
-
-    cache->put(1, 2);
-    cache->put(2, 4);
-
-    cout << "value of key 2 is " << cache->get(2) << endl;
 
     return 0;
 }
