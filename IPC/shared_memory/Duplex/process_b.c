@@ -46,8 +46,6 @@ int main()
             printf("[B] sent: %s\n", message);
         }
 
-       
-
         usleep(500000);
     }
 

@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 
-#define SHM_NAME "/fifo_duplex_shm"
-#define BUFFER_SIZE 256 // Size per FIFO
+#define SHM_NAME      "/fifo_duplex_shm"
+#define BUFFER_SIZE    256 // Size per FIFO
 
 typedef struct fifo_t
 {
