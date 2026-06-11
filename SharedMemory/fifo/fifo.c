@@ -62,6 +62,22 @@ int fifo_destroy(fifo_t *fifo)
 }
 
 /*
+ * Internal helper: check empty state without locking (assumes lock is held).
+ */
+static bool fifo_is_empty_unlocked(fifo_t *fifo)
+{
+    return (fifo->size == 0);
+}
+
+/*
+ * Internal helper: check full state without locking (assumes lock is held).
+ */
+static bool fifo_is_full_unlocked(fifo_t *fifo)
+{
+    return (fifo->size == fifo->capacity);
+}
+
+/*
  * Check whether the FIFO contains no bytes.
  * Returns true if empty, false otherwise.
  */
@@ -71,7 +87,7 @@ bool fifo_is_empty(fifo_t *fifo)
         return true;
 
     pthread_mutex_lock(&fifo->lock);
-    bool result = (fifo->size == 0);
+    bool result = fifo_is_empty_unlocked(fifo);
     pthread_mutex_unlock(&fifo->lock);
     return result;
 }
@@ -85,7 +101,7 @@ bool fifo_is_full(fifo_t *fifo)
         return false;
 
     pthread_mutex_lock(&fifo->lock);
-    bool result = (fifo->size == fifo->capacity);
+    bool result = fifo_is_full_unlocked(fifo);
     pthread_mutex_unlock(&fifo->lock);
     return result;
 }
@@ -103,7 +119,7 @@ int fifo_enqueue(fifo_t *fifo, uint8_t item)
     pthread_mutex_lock(&fifo->lock);
 
     /* If the FIFO is full, we do not block; return failure. */
-    if (fifo->size == fifo->capacity) {
+    if (fifo_is_full_unlocked(fifo)) {
         pthread_mutex_unlock(&fifo->lock);
         return -1;
     }
@@ -129,7 +145,7 @@ int fifo_dequeue(fifo_t *fifo, uint8_t *item)
 
     pthread_mutex_lock(&fifo->lock);
 
-    if (fifo->size == 0) {
+    if (fifo_is_empty_unlocked(fifo)) {
         pthread_mutex_unlock(&fifo->lock);
         return -1;
     }
