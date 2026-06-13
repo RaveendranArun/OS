@@ -3,13 +3,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct Block
-{
-    struct Block* next;
-    size_t size;
-    bool isFree;
-    uint8_t pad[7];
-}Block_t;
+typedef struct Block {
+    size_t size;         // Size of usable memory
+    bool isFree;         // Is this block free?
+    uint8_t pad[7];      // Alignment padding
+    struct Block* next;  // Link to next block
+} Block_t;
 
 #define BLOCK_SIZE    sizeof(Block_t)
 #define HEAP_SIZE     1024
@@ -45,11 +44,13 @@ void splitBlock(Block_t* block, size_t size)
 {
     if (block->size >= (size + BLOCK_SIZE))                                      // Ensure the space for new block
     {
+        // Update the next block information
         Block_t* newBlock = (Block_t*)((uint8_t* )block + BLOCK_SIZE + size);    // Get the new block
         newBlock->size = block->size - size - BLOCK_SIZE;                        // free space for the new block
         newBlock->next = block->next;                                            // Next block 
         newBlock->isFree = true;                                                 // Marking it as free block
 
+        // Update the current block information
         block->next = newBlock;                                                  // update the current blocks next block
         block->size = size;                                                      // Update the current blocks size
         block->isFree = false;                                                   // Marking the current block as allocated
@@ -90,7 +91,7 @@ void* my_malloc(size_t size)
     splitBlock(block, size);
     block->isFree = false; // allocated;
 
-    return (void* )((uint8_t*)block + BLOCK_SIZE); // Return the pointer to user memory (after the meta data)
+    return (void*)((uint8_t*)block + BLOCK_SIZE); // Return the pointer to user memory (after the meta data)
 }
 
 // Free allocated memory
@@ -99,7 +100,7 @@ void my_free(void* ptr)
     if (!ptr)
         return;
 
-    Block_t* block = (Block_t* )((uint8_t* )ptr - BLOCK_SIZE);
+    Block_t* block = (Block_t*)((uint8_t* )ptr - BLOCK_SIZE);
     block->isFree = true;
 
     mergeBlocks(); // Try merging the blocks
